@@ -5,11 +5,15 @@ namespace App\Nova;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Line;
+use Laravel\Nova\Fields\Number;
+use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Saumini\Count\RelationshipCount;
+use Laravel\Nova\Panel;
 
 class Customer extends Resource
 {
@@ -42,8 +46,14 @@ class Customer extends Resource
     {
         // Give relationship name as alias else Laravel will name it as comments_count
         return $query
-            ->withCount('trails as trails')
-            ->withCount('users as users');
+            ->withCount('trails as trailsCount')
+            ->withCount('users as usersCount')
+            ->withCount('activeUsers as activeUsersCount');
+    }
+
+    public static function relatableUsers(NovaRequest $request, $query)
+    {
+        return $query->where('customer_id', $request->resourceId);
     }
 
     /**
@@ -55,21 +65,42 @@ class Customer extends Resource
     public function fields(Request $request)
     {
         return [
-            ID::make(__('ID'), 'id')->sortable(),
+            ID::make(__('ID'), 'id')->hideFromIndex()->sortable(),
+            Images::make('Logo', 'logo_small')->onlyOnIndex()->textAlign('center'),
+            Stack::make('Company', [
+                Line::make('Company')->asHeading(),
+                Line::make('Owner', function () {
+                    return optional($this->root)->name;
+                })->asSmall(),
+            ])
+            ->sortable()
+            ->onlyOnIndex(),
+            Text::make('Company')->hideFromIndex()->sortable(),
+            Number::make('Trails', 'trailsCount')->sortable()->textAlign('center')->onlyOnIndex(),
+            Number::make('Users', 'usersCount')->sortable()->textAlign('center')->onlyOnIndex(),
+            Number::make('Active', 'activeUsersCount')->sortable()->textAlign('center')->onlyOnIndex(),
+            BelongsTo::make('Owner', 'root', User::class)->searchable()->withSubtitles()->hideFromIndex(),
+            Date::make('Created At')->sortable()->onlyOnIndex(),
 
-            Images::make('Logo', 'logo_small'),
+            new Panel('Media', $this->mediaFields()),
+            new Panel('Users', $this->userFields()),
+        ];
+    }
 
-            Text::make('Company')->sortable(),
+    protected function mediaFields()
+    {
+        return [
+            Images::make('Logo large', 'logo_large')->hideFromIndex(),
+            Images::make('Logo small', 'logo_small')->hideFromIndex(),
+            Images::make('Avatar', 'avatar')->hideFromIndex(),
+            Images::make('Cover', 'cover')->hideFromIndex(),
+        ];
+    }
 
-            RelationshipCount::make('Trails')->sortable(),
-
-            RelationshipCount::make('Users')->sortable(),
-
-            BelongsTo::make('Owner', 'root', User::class)
-                ->searchable()
-                ->withSubtitles(),
-
-            DateTime::make('Created At')->sortable(),
+    protected function userFields()
+    {
+        return [
+            HasMany::make('Users', 'users', User::class)->hideFromIndex(),
         ];
     }
 

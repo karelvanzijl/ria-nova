@@ -2,11 +2,19 @@
 
 namespace App\Nova;
 
+use App\Containers\Localization\Actions\GetAllCountriesAction;
+use App\Containers\Localization\Actions\GetAllLanguagesAction;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Line;
 use Laravel\Nova\Fields\Password;
+use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Panel;
 
 class User extends Resource
 {
@@ -54,13 +62,30 @@ class User extends Resource
     public function fields(Request $request)
     {
         return [
-            ID::make()->sortable(),
+            ID::make(__('ID'), 'id')->hideFromIndex()->sortable(),
 
-            Images::make('Avatar', 'avatar'),
+            Images::make('Avatar', 'avatar')->onlyOnIndex(),
 
-            Text::make('Name', function () {
-                return sprintf('%s %s', $this->firstname, $this->lastname);
-            })->onlyOnIndex(),
+            BelongsTo::make('Customer')->onlyOnDetail(),
+
+            Stack::make('Name', [
+                Line::make('Name')->asHeading(),
+                Line::make('Customer', function () {
+                    return optional($this->customer)->company;
+                })->asSmall(),
+            ])
+            ->sortable()
+            ->onlyOnIndex(),
+
+            Select::make('Gender', 'gender')
+                ->options([
+                    'Male',
+                    'Female',
+                    'Non-Binary'
+                ])
+                ->sortable()
+                ->displayUsingLabels()
+                ->hideFromIndex(),
 
             Text::make('Firstname')
                 ->sortable()
@@ -78,10 +103,74 @@ class User extends Resource
                 ->creationRules('unique:users,email')
                 ->updateRules('unique:users,email,{{resourceId}}'),
 
+            Date::make('Created At')->onlyOnIndex()->sortable(),
+
             Password::make('Password')
                 ->onlyOnForms()
                 ->creationRules('required', 'string', 'min:8')
                 ->updateRules('nullable', 'string', 'min:8'),
+
+            Date::make('Birthdate', 'birth')
+                ->sortable()
+                ->hideFromIndex(),
+
+            Select::make('Experience', 'experience')
+                ->options([
+                    'Less than 1 year',
+                    '1 to 2 years',
+                    '3 to 5 years',
+                    '6 to 10 years',
+                    '11 to 15 years',
+                    '15 to 20 years',
+                    'More than 20 years'
+                ])
+                ->sortable()
+                ->displayUsingLabels()
+                ->hideFromIndex(),
+
+            Select::make('Education', 'education')
+                ->options([
+                    'Below secondary',
+                    'Secondary',
+                    'Trade / technical / vocational',
+                    'Associate / College',
+                    'Bachelor',
+                    'Master / Professional', 'Doctoral'
+                ])
+                ->sortable()
+                ->displayUsingLabels()
+                ->hideFromIndex(),
+
+            Select::make('Country', 'country')
+                ->options((new GetAllCountriesAction())->index())
+                ->sortable()
+                ->displayUsingLabels()
+                ->searchable()
+                ->hideFromIndex(),
+
+            Select::make('Nationality', 'nationality')
+                ->options((new GetAllCountriesAction())->index())
+                ->sortable()
+                ->displayUsingLabels()
+                ->searchable()
+                ->hideFromIndex(),
+
+            Select::make('Language', 'language')
+                ->options((new GetAllLanguagesAction())->index())
+                ->sortable()
+                ->displayUsingLabels()
+                ->searchable()
+                ->hideFromIndex(),
+
+            new Panel('Media', $this->mediaFields()),
+        ];
+    }
+
+    protected function mediaFields()
+    {
+        return [
+            Images::make('Avatar', 'avatar')->hideFromIndex(),
+            Images::make('Cover', 'cover')->hideFromIndex(),
         ];
     }
 

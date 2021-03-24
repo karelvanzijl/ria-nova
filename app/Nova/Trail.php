@@ -6,14 +6,14 @@ use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Boolean;
-use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Line;
+use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Saumini\Count\RelationshipCount;
 
 class Trail extends Resource
 {
@@ -59,7 +59,7 @@ class Trail extends Resource
         return $query
             ->whereNull('parent_id')
             ->where('level', 0)
-            ->withCount('users as users');
+            ->withCount('users as usersCount');
     }
 
     /**
@@ -71,7 +71,7 @@ class Trail extends Resource
     public function fields(Request $request)
     {
         return [
-            ID::make(__('ID'), 'id')->sortable(),
+            ID::make(__('ID'), 'id')->hideFromIndex()->sortable(),
 
             Images::make('Icon', 'icon'),
 
@@ -98,13 +98,13 @@ class Trail extends Resource
                 ->displayUsingLabels()
                 ->onlyOnIndex(),
 
-            RelationshipCount::make('Players', 'users')->sortable(),
+            Number::make('Players', 'usersCount')->sortable()->onlyOnIndex()->textAlign('center'),
 
             Boolean::make('Active', 'is_active')->sortable(),
 
             Boolean::make('Public', 'is_public')->sortable()->readonly($this->node_type === 'battle'),
 
-            DateTime::make('Created At')->sortable(),
+            // Date::make('Created At')->sortable(),
 
             BelongsTo::make('Customer')->searchable()->readonly()->hideFromIndex(),
 
