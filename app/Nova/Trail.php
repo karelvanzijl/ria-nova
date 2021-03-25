@@ -52,6 +52,11 @@ class Trail extends Resource
         'creator' => ['firstname', 'lastname'],
     ];
 
+    public function subtitle()
+    {
+        return "{$this->customer->company} | {$this->creator->name}";
+    }
+
     // Overwrite the indexQuery to include relationship count
     public static function indexQuery(NovaRequest $request, $query)
     {

@@ -2,19 +2,19 @@
 
 namespace App\Nova;
 
-use App\Containers\Localization\Actions\GetAllCountriesAction;
-use App\Containers\Localization\Actions\GetAllLanguagesAction;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Line;
+use Laravel\Nova\Fields\MorphToMany;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Stack;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Panel;
+use Illuminate\Support\Str;
 
 class User extends Resource
 {
@@ -69,7 +69,9 @@ class User extends Resource
             BelongsTo::make('Customer')->onlyOnDetail(),
 
             Stack::make('Name', [
-                Line::make('Name')->asHeading(),
+                Line::make('Name')->displayUsing(function ($value) {
+                    return Str::limit($value, 25, '...');
+                })->asHeading(),
                 Line::make('Customer', function () {
                     return optional($this->customer)->company;
                 })->asSmall(),
@@ -97,11 +99,36 @@ class User extends Resource
                 ->hideFromIndex()
                 ->rules('required', 'max:255'),
 
-            Text::make('Email')
+            Stack::make('Role', [
+                Line::make('Role', 'highestRole', function () {
+                    return $this->highestRole->first()->display_name;
+                })->asSubTitle(),
+                Line::make('Roles', function () {
+                    return implode(', ', array_filter($this->roles()->orderByDesc('level')->pluck('display_name')->toArray(), function ($v, $k) {
+                        return $v != $this->highestRole->first()->display_name;
+                    }, ARRAY_FILTER_USE_BOTH));
+                })->asSmall(),
+            ])
+                ->onlyOnIndex(),
+
+            Text::make('Role', function () {
+                return $this->highestRole->first()->display_name;
+            })->hideFromIndex(),
+
+            Text::make('Email')->displayUsing(function ($value) {
+                return Str::limit($value, 25, '...');
+            })
+                ->sortable()
+                ->onlyOnIndex(),
+
+            Text::make('Email')->displayUsing(function ($value) {
+                return Str::limit($value, 25, '...');
+            })
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
                 ->creationRules('unique:users,email')
-                ->updateRules('unique:users,email,{{resourceId}}'),
+                ->updateRules('unique:users,email,{{resourceId}}')
+                ->hideFromIndex(),
 
             Date::make('Created At')->onlyOnIndex()->sortable(),
 
@@ -142,25 +169,27 @@ class User extends Resource
                 ->hideFromIndex(),
 
             Select::make('Country', 'country')
-                ->options((new GetAllCountriesAction())->index())
+                ->options(config('ria_countries'))
                 ->sortable()
                 ->displayUsingLabels()
                 ->searchable()
                 ->hideFromIndex(),
 
             Select::make('Nationality', 'nationality')
-                ->options((new GetAllCountriesAction())->index())
+                ->options(config('ria_countries'))
                 ->sortable()
                 ->displayUsingLabels()
                 ->searchable()
                 ->hideFromIndex(),
 
             Select::make('Language', 'language')
-                ->options((new GetAllLanguagesAction())->index())
+                ->options(config('ria_languages'))
                 ->sortable()
                 ->displayUsingLabels()
                 ->searchable()
                 ->hideFromIndex(),
+
+            MorphToMany::make('Roles'),
 
             new Panel('Media', $this->mediaFields()),
         ];
@@ -193,7 +222,9 @@ class User extends Resource
      */
     public function filters(Request $request)
     {
-        return [];
+        return [
+            new Filters\RoleFilter,
+        ];
     }
 
     /**
