@@ -52,6 +52,11 @@ class Trail extends Resource
         'creator' => ['firstname', 'lastname'],
     ];
 
+    public static function authorizedToCreate(Request $request)
+    {
+        return false;
+    }
+
     public function subtitle()
     {
         return "{$this->customer->company} | {$this->creator->name}";

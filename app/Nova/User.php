@@ -66,7 +66,7 @@ class User extends Resource
 
             Images::make('Avatar', 'avatar')->onlyOnIndex(),
 
-            BelongsTo::make('Customer')->onlyOnDetail(),
+            BelongsTo::make('Customer')->hideFromIndex(),
 
             Stack::make('Name', [
                 Line::make('Name')->displayUsing(function ($value) {

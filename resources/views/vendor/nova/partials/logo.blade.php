@@ -1,3 +1,4 @@
+{{-- <img src="/CW.png" style="max-width: 40%;" /> --}}
 <svg
     class="fill-current"
     width="{{ $width ?? '126' }}"
