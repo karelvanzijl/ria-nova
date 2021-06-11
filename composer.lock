@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db1a5fccc6448c9befb9a85a675ed628",
+    "content-hash": "b846274e5e08539418abb5b160d39c43",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2414,6 +2414,58 @@
                 }
             ],
             "time": "2020-05-30T13:11:16+00:00"
+        },
+        {
+            "name": "markrassamni/inline-boolean",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/markrassamni/inline-boolean.git",
+                "reference": "4934c768b3f662194ed4e25c1c3da3723b3710c2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/markrassamni/inline-boolean/zipball/4934c768b3f662194ed4e25c1c3da3723b3710c2",
+                "reference": "4934c768b3f662194ed4e25c1c3da3723b3710c2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "MarkRassamni\\InlineBoolean\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MarkRassamni\\InlineBoolean\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Rassamni",
+                    "email": "markrassamni@me.com"
+                }
+            ],
+            "description": "A Laravel Nova boolean field that can be directly edited from the index or detail page of a resource.",
+            "homepage": "https://github.com/markrassamni/inline-boolean",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/markrassamni/inline-boolean/issues",
+                "source": "https://github.com/markrassamni/inline-boolean/tree/master"
+            },
+            "time": "2019-06-11T23:06:02+00:00"
         },
         {
             "name": "monolog/monolog",
