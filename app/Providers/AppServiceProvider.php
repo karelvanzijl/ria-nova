@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Containers\Localization\Models\Language;
+use App\Observers\LanguageObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Language::observe(LanguageObserver::class);
     }
 }
